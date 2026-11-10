@@ -4,6 +4,7 @@ Modèle à compléter : les adresses RSS des sites ne sont pas encore renseigné
 Remplace chaque ligne « A_REMPLIR » par le vrai flux de chaque site.
 """
 import csv
+import html
 import re
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
@@ -33,10 +34,22 @@ FLUX = [
 PARIS = ZoneInfo("Europe/Paris")
 FENETRE = timedelta(hours=48)
 SPONSO = re.compile(r"#sponso|article en partenariat|sponsoris|\bsponso\b", re.IGNORECASE)
+# Articles de bons plans et promotions (titre)
+PROMO = re.compile(
+    r"black friday|réduction|remise|discount|price drop|drops below|lowest price|soldes|\bdeal\b|\bcodes?\b"
+    r"|\$?\d+\s?(%|percent)\s?off|\$\d+\s+off|-\s?\d+\s?%",
+    re.IGNORECASE,
+)
+# Chemins d'adresse typiques des bons plans (lien)
+PROMO_LIEN = re.compile(r"/bons-plans/|promo|pas-cher|black-friday", re.IGNORECASE)
 
 
 def est_sponsorise(titre):
     return bool(SPONSO.search(titre))
+
+
+def est_promo(titre, lien):
+    return bool(PROMO.search(titre) or PROMO_LIEN.search(lien))
 
 
 def collecter():
@@ -57,15 +70,16 @@ def collecter():
             quand = datetime(*date_struct[:6], tzinfo=timezone.utc)
             if quand < limite:
                 continue
-            titre = entree.get("title", "").strip()
-            if not titre or est_sponsorise(titre):
+            titre = html.unescape(entree.get("title", "").strip())
+            lien = entree.get("link", "").strip()
+            if not titre or est_sponsorise(titre) or est_promo(titre, lien):
                 continue
             lignes.append({
                 "Date": quand.astimezone(PARIS).strftime("%d/%m/%Y %H:%M"),
                 "Thème": theme,
                 "Site": site,
                 "Titre": titre,
-                "Lien": entree.get("link", "").strip(),
+                "Lien": lien,
                 "_tri": quand,
             })
     lignes.sort(key=lambda l: l["_tri"], reverse=True)
