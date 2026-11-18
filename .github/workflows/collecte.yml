@@ -1,9 +1,7 @@
 name: Collecte veille Geekotidien
 
 on:
-  schedule:
-    - cron: "0 18 * * *"   # 18h UTC = 19h à Paris en hiver, 20h en été (l'heure UTC ne change pas)
-  workflow_dispatch:        # bouton « Run workflow » pour lancer la collecte à la main, depuis le téléphone
+  workflow_dispatch:        # lancement manuel uniquement : bouton « Run workflow » (GitHub, téléphone compris)
 
 permissions:
   contents: write
