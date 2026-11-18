@@ -1,7 +1,10 @@
 name: Collecte veille Geekotidien
 
 on:
-  workflow_dispatch:        # lancement manuel uniquement : bouton « Run workflow » (GitHub, téléphone compris)
+  workflow_dispatch:        # lancement manuel : bouton « Run workflow » (GitHub, téléphone compris)
+  push:
+    branches: [main]
+    paths: ['.lancer-collecte']   # lancement depuis la page Geekotidien : écriture de ce fichier
 
 permissions:
   contents: write
@@ -20,7 +23,3 @@ jobs:
         run: |
           git config user.name "veille-bot"
           git config user.email "veille-bot@users.noreply.github.com"
-          git add veille.csv
-          git commit -m "Veille du $(date -u +%Y-%m-%d)" || echo "Rien à enregistrer"
-          git pull --rebase origin main
-          git push origin HEAD:main
